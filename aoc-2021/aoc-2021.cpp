@@ -1,5 +1,10 @@
-// aoc-2021.cpp : Este archivo contiene la función "main". La ejecución del programa comienza y termina ahí.
-//
+// ------------------------------------------------------------------------------------------------------------
+// Este es mi código para las soliciones del Advent Of Code 2021
+// Si por alguna razón quieren correr este código son necesarios los puzzle inputs del advent of code 2021
+// Los puzzle inputs se obtienen en https://adventofcode.com y consisten en un monton de datos para cada puzzle
+// 
+// Gracias a Eric Wastl por estos entretenidos puzzles!
+// ------------------------------------------------------------------------------------------------------------
 
 #include <iostream>
 #include <fstream>
@@ -11,9 +16,11 @@ using std::cin;
 using std::cout;
 using std::list;
 using std::string;
+using std::stoi;
 
-
+// -----
 // day 1
+// -----
 void DepthMeasurement()
 {
     std::ifstream infile("C:\\Users\\paver\\Desktop\\data.txt");
@@ -164,7 +171,9 @@ void ThreeVectorDepthMeasurement()
     std::cout << increasedAmount << " cantidad de incrementos " << "\n";
 }
 
+// -----
 // day 2
+// -----
 void SubMovement()
 {
     std::ifstream infile("C:\\Users\\paver\\Desktop\\data-movement.txt");
@@ -261,17 +270,84 @@ void SubMovementWithAim()
     cout << "Final Multiplication: " << finalMult;
 }
 
-int main()
+// -----
+// day 3
+// -----
+int BinaryToDecimal(long long n)
 {
-    SubMovementWithAim();
+    long long num = n;
+    int dec_value = 0;
+    int base = 1;
+    long long temp = num;
+
+    while (temp) {
+        int last_digit = temp % 10;
+        temp = temp / 10;
+
+        dec_value += last_digit * base;
+
+        base = base * 2;
+    }
+
+    return dec_value;
 }
 
-// Ejecutar programa: Ctrl + F5 o menú Depurar > Iniciar sin depurar
-// Depurar programa: F5 o menú Depurar > Iniciar depuración
+void BinaryDiagnostic()
+{
+    std::ifstream infile("C:\\Users\\paver\\Desktop\\data-bin-diag.txt");
+    string gamma = "";
+    string epsilon = "";
+    int zeroBits[12] {};
+    int oneBits[12]{};
+    int zeros = 0;
+    int ones = 0;
 
-// Sugerencias para primeros pasos: 1. Use la ventana del Explorador de soluciones para agregar y administrar archivos
-//   2. Use la ventana de Team Explorer para conectar con el control de código fuente
-//   3. Use la ventana de salida para ver la salida de compilación y otros mensajes
-//   4. Use la ventana Lista de errores para ver los errores
-//   5. Vaya a Proyecto > Agregar nuevo elemento para crear nuevos archivos de código, o a Proyecto > Agregar elemento existente para agregar archivos de código existentes al proyecto
-//   6. En el futuro, para volver a abrir este proyecto, vaya a Archivo > Abrir > Proyecto y seleccione el archivo .sln
+    for (string line; getline(infile, line);)
+    {
+        int counter = 0;
+
+        for (auto c : line) {
+            if ((c - '0') == 0)
+            {
+                zeroBits[counter]++;
+            }
+            else
+            {
+                oneBits[counter]++;
+            }
+
+            counter++;
+        }
+
+        cout << "report: " << line << "\n";
+    }
+
+    for (int i = 0; i < 12; i++) {
+        if (zeroBits[i] > oneBits[i]) 
+        {
+            gamma += "0";
+            epsilon += "1";
+        }
+        else 
+        {
+            gamma += "1";
+            epsilon += "0";
+        }
+    }
+
+    int decimalGamma = BinaryToDecimal(stoll(gamma));
+    int decimalEpsilon = BinaryToDecimal(stoll(epsilon));
+    
+    cout << "GAMMA: " << decimalGamma << "\n";
+    cout << "EPSILON: " << decimalEpsilon << "\n";
+
+    cout << "MULT: " << (decimalGamma * decimalEpsilon) << "\n";
+}
+
+// ----
+// MAIN
+// ----
+int main()
+{
+    BinaryDiagnostic();
+}
