@@ -70,7 +70,6 @@ int LookForNums(int startingLine)
     bool counting = false;
     int countingLine = 0;
 
-
     for (std::string line; getline(infile, line);)
     {
         std::istringstream iss(line);
@@ -344,10 +343,209 @@ void BinaryDiagnostic()
     cout << "MULT: " << (decimalGamma * decimalEpsilon) << "\n";
 }
 
+string * FindRatings()
+{
+    std::ifstream infile("C:\\Users\\paver\\Desktop\\data-bin-diag.txt");
+    int oxyBits[2][12]{};
+    int co2Bits[2][12]{};
+
+    bool oxyDone = false;
+
+    int oxyZeroBits[12]{};
+    int oxyOneBits[12]{};
+    int co2ZeroBits[12]{};
+    int co2OneBits[12]{};
+    int commons[12]{};
+    string* results = new string[2];
+    list <string> oxyResultList;
+    list <string> co2ResultList;
+
+    // recorrer lineas para guardar una lista de resultados
+    for (string line; getline(infile, line);)
+    {
+        oxyResultList.push_back(line);
+        co2ResultList.push_back(line);
+    }
+
+    // ¿que bit voy a revisar?
+    int oxyCounter = 0;
+
+    // ¿quedan mas de un resultados en la lista?
+    while (oxyResultList.size() > 1)
+    {
+        // encontrar bits comunes en la lista actual
+        oxyBits[0][oxyCounter] = 0;
+        oxyBits[1][oxyCounter] = 0;
+        for (auto it = oxyResultList.begin(); it != oxyResultList.end(); it++) {
+            string cn = *it;
+            int i = 0;
+
+            for (auto c : cn) {
+                if ((c - '0') == 0)
+                {
+                    oxyBits[0][i]++;
+                }
+                else
+                {
+                    oxyBits[1][i]++;
+                }
+
+                i++;
+            }
+        }
+
+        if (oxyBits[0][oxyCounter] > oxyBits[1][oxyCounter])
+        {
+            commons[oxyCounter] = 0;
+        }
+        if (oxyBits[0][oxyCounter] == oxyBits[1][oxyCounter])
+        {
+            commons[oxyCounter] = 1;
+        }
+        if (oxyBits[0][oxyCounter] < oxyBits[1][oxyCounter])
+        {
+            // uno es comun, en caso de empate tambien
+            commons[oxyCounter] = 1;
+        }
+
+        cout << " .......... " << "\n";
+        cout << " COUNTER: " << oxyCounter << "\n";
+        cout << " .......... " << "\n";
+
+        // loop a traves de la lista
+        list <string>::iterator itr = oxyResultList.begin();
+        while (itr != oxyResultList.end())
+        {
+            // eliminar los que no cumplen los criterios
+            string currentNumber = *itr;
+            int cn = currentNumber[oxyCounter] - '0';
+            int cc = commons[oxyCounter];
+
+            cout << " O2 NUMBER " << currentNumber << "\n";
+            if (cn != cc) {
+                itr = oxyResultList.erase(itr);
+                cout << " ERASING " << cn << " - " << cc << "\n";
+            }            
+            else {
+                cout << " PASSING " << "\n";
+                itr++;
+            }
+        }
+
+        oxyCounter++;
+    }
+
+    // ¿que bit voy a revisar?
+    int co2Counter = 0;
+
+    // ¿quedan mas de un resultados en la lista?
+    while (co2ResultList.size() > 1)
+    {
+        // encontrar bits comunes en la lista actual
+        co2Bits[0][co2Counter] = 0;
+        co2Bits[1][co2Counter] = 0;
+        for (auto it = co2ResultList.begin(); it != co2ResultList.end(); it++) {
+            string cn = *it;
+            int i = 0;
+
+            for (auto c : cn) {
+                if ((c - '0') == 0)
+                {
+                    co2Bits[0][i]++;
+                }
+                else
+                {
+                    co2Bits[1][i]++;
+                }
+
+                i++;
+            }
+        }
+        
+        if (co2Bits[0][co2Counter] > co2Bits[1][co2Counter])
+        {
+            commons[co2Counter] = 1;
+        }
+        if (co2Bits[0][co2Counter] == co2Bits[1][co2Counter])
+        {
+            commons[co2Counter] = 0;
+        }
+        if (co2Bits[0][co2Counter] < co2Bits[1][co2Counter])
+        {
+            commons[co2Counter] = 0;
+        }
+
+        cout << " .......... " << "\n";
+        cout << " COUNTER: " << co2Counter << "\n";
+        cout << " .......... " << "\n";
+
+        // loop a traves de la lista
+        list <string>::iterator it = co2ResultList.begin();
+        while (it != co2ResultList.end())
+        {
+            // eliminar los que no cumplen los criterios
+            string currentNumber = *it;
+            int cn = currentNumber[co2Counter] - '0';
+            int cc = commons[co2Counter];
+
+            cout << " CO2 NUMBER " << currentNumber << "\n";
+            if (cn != cc) {
+                it = co2ResultList.erase(it);
+                cout << " ERASING " << cn << " - " << cc << "\n";
+            }
+            else {
+                cout << " PASSING " << co2ResultList.size() << "\n";
+                it++;
+                
+            }
+        }
+
+        co2Counter++;
+    }
+
+    for (auto it = oxyResultList.begin(); it != oxyResultList.end(); it++) {
+        string cn = *it;
+        cout << "final OXY result: " << cn << "\n";
+
+        results[0] = cn;
+    }
+
+    for (auto it = co2ResultList.begin(); it != co2ResultList.end(); it++) {
+        std::string cn = *it;
+        cout << "final CO2 result: " << cn << "\n";
+
+        results[1] = cn;
+    }
+
+    return results;
+}
+
+void LifeSupport()
+{
+    std::ifstream infile("C:\\Users\\paver\\Desktop\\data-bin-diag.txt");
+    string oxygenRating = "";
+    string co2Rating = "";
+
+    string * ratings = FindRatings();
+    oxygenRating = ratings[0];
+    co2Rating = ratings[1];
+
+    cout << "oxygen bin: " << ratings[0] << "\n";
+    cout << "co2 bin: " << ratings[1] << "\n";
+
+    int decimalOx = BinaryToDecimal(stoll(oxygenRating));
+    int decimalCo = BinaryToDecimal(stoll(co2Rating));
+
+    cout << "oxygen decimal: " << decimalOx  << "\n";
+    cout << "co2 decimal: " << decimalCo << "\n";
+
+    cout << "MULT: " << (decimalOx * decimalCo) << "\n";
+}
+
 // ----
 // MAIN
 // ----
 int main()
 {
-    BinaryDiagnostic();
+    LifeSupport();
 }
