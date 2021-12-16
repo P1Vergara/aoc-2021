@@ -568,7 +568,7 @@ void FindResults(list<int>& results)
     }
 }
 
-void FindBoards(list<vector<vector<int>>>& boards, list<vector<vector<int>>>& boardsMarkers)
+void FindBoards(list<vector<vector<int>>>& boards, list<vector<vector<int>>>& boardsMarkers, list<int>& winners)
 {
     std::ifstream infile("C:\\Users\\paver\\Desktop\\data-bingo-boards.txt");
 
@@ -604,11 +604,13 @@ void FindBoards(list<vector<vector<int>>>& boards, list<vector<vector<int>>>& bo
             y = 0;
             boards.push_back(board);
             boardsMarkers.push_back(boardMarker);
+            winners.push_back(0);
         }
     }
     // ingresar ultimo tablero
     boards.push_back(board);
     boardsMarkers.push_back(boardMarker);
+    winners.push_back(0);
 }
 
 void LookForAWinner(
@@ -617,8 +619,16 @@ void LookForAWinner(
     list<vector<vector<int>>>& boardsMarkers, 
     vector<vector<int>>& winnerBoard, 
     vector<vector<int>>& winnerMarkers,
-    int& winningNumber)
+    vector<vector<int>>& lastWinnerBoard,
+    vector<vector<int>>& lastWinnerMarkers,
+    int& winningNumber,
+    int& lastWinningNumber,
+    list<int>& winners,
+    list<vector<vector<int>>>& winnerBoards)
 {
+    bool firstWinnerFound = false;
+    int winnerCount = 0;
+
     // loop por resultados
     for (auto it = results.begin(); it != results.end(); it++)
     {
@@ -627,79 +637,120 @@ void LookForAWinner(
         // loop por tableros
         list<vector<vector<int>>>::iterator it1 = boards.begin();
         list<vector<vector<int>>>::iterator it2 = boardsMarkers.begin();
+        list<int>::iterator it3 = winners.begin();
 
-        while (it1 != boards.end() && it2 != boardsMarkers.end()) {
+        while (it1 != boards.end() && it2 != boardsMarkers.end() && it3 != winners.end()) {
             // loop en los numeros del tablero
             vector<vector<int>>& board = *it1;
             vector<vector<int>>& boardMarker = *it2;
+            int& boardCondition = *it3;
 
-            // marcar numeros de bingo
-            for (int y = 0; y < 5; y++)
+            // si es que el tablero no se ha declarado ganador
+            if (boardCondition != 1)
             {
-                for (int x = 0; x < 5; x++)
-                {
-                    int boardNumber = board[x][y];
-                    
-                    // revisar si el número del tablero corresponde al numero sorteado
-                    if (board[x][y] == currentNumber)
-                    {
-                        boardMarker[x][y] = 1;
-                    }
-                }
-            }
-
-            // revisar si hay un ganador
-            int rowCount = 0;
-            int colCount = 0;
-            
-            // revisar fila
-            for (int y = 0; y < 5; y++)
-            {
-                for (int x = 0; x < 5; x++)
-                {
-                    if (boardMarker[x][y] == 1)
-                    {
-                        rowCount += 1;
-                        if (rowCount > 4)
-                        {
-                            cout << "Winner found" << "\n";
-                            winnerBoard = board;
-                            winnerMarkers = boardMarker;
-                            winningNumber = currentNumber;
-                            return;
-                        }
-                    }
-                }
-                rowCount = 0;
-            }
-
-            // revisar columna
-            for (int x = 0; x < 5; x++)
-            {
+                // marcar numeros de bingo
                 for (int y = 0; y < 5; y++)
                 {
-                    if (boardMarker[x][y] == 1)
+                    for (int x = 0; x < 5; x++)
                     {
-                        colCount += 1;
-                        if (colCount > 4)
+                        int boardNumber = board[x][y];
+                    
+                        // revisar si el número del tablero corresponde al numero sorteado
+                        if (board[x][y] == currentNumber)
                         {
-                            cout << "Winner found" << "\n";
-                            winnerBoard = board;
-                            winnerMarkers = boardMarker;
-                            winningNumber = currentNumber;
-                            return;
+                            boardMarker[x][y] = 1;
                         }
                     }
                 }
-                colCount = 0;
+
+                // revisar si hay un ganador
+                int rowCount = 0;
+                int colCount = 0;
+
+                // revisar fila
+                for (int y = 0; y < 5; y++)
+                {
+                    for (int x = 0; x < 5; x++)
+                    {
+                        if (boardMarker[x][y] == 1)
+                        {
+                            rowCount += 1;
+                            if (rowCount > 4)
+                            {
+                                if (!firstWinnerFound)
+                                {
+                                    cout << "First winner found" << "\n";
+                                    winnerBoard = board;
+                                    winnerMarkers = boardMarker;
+                                    winningNumber = currentNumber;
+                                    firstWinnerFound = true;
+                                    boardCondition = 1;
+                                    winnerCount++;
+                                    winnerBoards.push_back(board);
+                                    lastWinnerMarkers = boardMarker;
+                                    lastWinningNumber = currentNumber;
+                                }
+                                else
+                                {
+                                    boardCondition = 1;
+                                    winnerCount++;
+                                    winnerBoards.push_back(board);
+                                    lastWinnerMarkers = boardMarker;
+                                    lastWinningNumber = currentNumber;
+                                }
+                            }
+                        }
+                    }
+                    rowCount = 0;
+                }
+
+                if (boardCondition != 1)
+                {
+                    // revisar columna
+                    for (int x = 0; x < 5; x++)
+                    {
+                        for (int y = 0; y < 5; y++)
+                        {
+                            if (boardMarker[x][y] == 1)
+                            {
+                                colCount += 1;
+                                if (colCount > 4)
+                                {
+                                    if (!firstWinnerFound)
+                                    {
+                                        cout << "First winner found" << "\n";
+                                        winnerBoard = board;
+                                        winnerMarkers = boardMarker;
+                                        winningNumber = currentNumber;
+                                        firstWinnerFound = true;
+                                        boardCondition = 1;
+                                        winnerCount++;
+                                        winnerBoards.push_back(board);
+                                        lastWinnerMarkers = boardMarker;
+                                        lastWinningNumber = currentNumber;
+                                    }
+                                    else
+                                    {
+                                        boardCondition = 1;
+                                        winnerCount++;
+                                        winnerBoards.push_back(board);
+                                        lastWinnerMarkers = boardMarker;
+                                        lastWinningNumber = currentNumber;
+                                    }
+                                }
+                            }
+                        }
+                        colCount = 0;
+                    }
+                }
             }
 
             it1++;
             it2++;
+            it3++;
         }
-
-
     }
+    cout << "WINNER COUNT: " << winnerCount << "\n";
 }
 
 void Bingo()
@@ -707,18 +758,18 @@ void Bingo()
     list <int> results;
     list<vector<vector<int>>> boards;
     list<vector<vector<int>>> boardsMarkers;
+    list<int> winners;
+    list<vector<vector<int>>> winnerBoards;
     vector<vector<int>> winnerBoard(5, vector<int>(5, 0));
     vector<vector<int>> winnerMarkers(5, vector<int>(5, 0));
+    vector<vector<int>> lastWinnerBoard(5, vector<int>(5, 0));
+    vector<vector<int>> lastWinnerMarkers(5, vector<int>(5, 0));
     int winningNumber = 0;
+    int lastWinningNumber = 0;
 
     FindResults(results);
-    FindBoards(boards, boardsMarkers);
-    LookForAWinner(results, boards, boardsMarkers, winnerBoard, winnerMarkers, winningNumber);
-
-    /*for (auto it = results.begin(); it != results.end(); it++) {
-        int cn = *it;
-        cout << "result: " << cn << "\n";
-    }*/
+    FindBoards(boards, boardsMarkers, winners);
+    LookForAWinner(results, boards, boardsMarkers, winnerBoard, winnerMarkers, lastWinnerBoard, lastWinnerMarkers, winningNumber, lastWinningNumber, winners, winnerBoards);
 
     int bcount = 0;
     for (auto it = boards.begin(); it != boards.end(); it++) {        
@@ -758,10 +809,30 @@ void Bingo()
         cout << " -------------- " << "\n";
     }
 
-    // encontrar puntaje final
+    int wbcount = 0;
+    for (auto it = winnerBoards.begin(); it != winnerBoards.end(); it++) {
+        vector<vector<int>> board = *it;
+
+        cout << " board: " << wbcount << "\n";
+        for (int y = 0; y < 5; y++)
+        {
+            for (int x = 0; x < 5; x++)
+            {
+                cout << board[x][y] << " ";
+            }
+
+            cout << "\n";
+        }
+
+        wbcount++;
+        cout << " -------------- " << "\n";
+    }
+    lastWinnerBoard = winnerBoards.back();
+
+    // encontrar puntaje final primer tablero
     cout << "\n";
-    cout << "- WINNER BOARD -" << "\n";
-    double score = 0;
+    cout << "- FIRST WINNER BOARD -" << "\n";
+    double firstScore = 0;
     for (int y = 0; y < 5; y++)
     {
         for (int x = 0; x < 5; x++)
@@ -770,7 +841,7 @@ void Bingo()
 
             if (winnerMarkers[x][y] == 0)
             {
-                score += winnerBoard[x][y];
+                firstScore += winnerBoard[x][y];
             }
         }
         cout << "\n";
@@ -785,9 +856,40 @@ void Bingo()
         cout << "\n";
     }
     cout << "\n";
-    cout << "SCORE: " << score << "\n";
-    cout << "WINNING NUMBER: " << winningNumber << "\n";
-    cout << "FINAL SCORE: " << score * winningNumber << "\n";
+    cout << "FIRST SCORE: " << firstScore << "\n";
+    cout << "FIRST WINNING NUMBER: " << winningNumber << "\n";
+    cout << "FIRST FINAL SCORE: " << firstScore * winningNumber << "\n";
+
+    // encontrar puntaje final ultimo tablero
+    cout << "\n";
+    cout << "- LAST WINNER BOARD -" << "\n";
+    double lastScore = 0;
+    for (int y = 0; y < 5; y++)
+    {
+        for (int x = 0; x < 5; x++)
+        {
+            cout << lastWinnerBoard[x][y] << " ";
+
+            if (lastWinnerMarkers[x][y] == 0)
+            {
+                lastScore += lastWinnerBoard[x][y];
+            }
+        }
+        cout << "\n";
+    }
+    cout << " ---------------- " << "\n";
+    for (int y = 0; y < 5; y++)
+    {
+        for (int x = 0; x < 5; x++)
+        {
+            cout << lastWinnerMarkers[x][y] << " ";
+        }
+        cout << "\n";
+    }
+    cout << "\n";
+    cout << "LAST SCORE: " << lastScore << "\n";
+    cout << "LAST WINNING NUMBER: " << lastWinningNumber << "\n";
+    cout << "LAST FINAL SCORE: " << lastScore * lastWinningNumber << "\n";
 }
 
 // ----
