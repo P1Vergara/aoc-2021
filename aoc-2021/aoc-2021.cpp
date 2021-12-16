@@ -11,12 +11,14 @@
 #include <sstream>
 #include <string>
 #include <list>
+#include <vector>
 
 using std::cin;
 using std::cout;
 using std::list;
 using std::string;
 using std::stoi;
+using std::vector;
 
 // -----
 // day 1
@@ -542,10 +544,256 @@ void LifeSupport()
     cout << "MULT: " << (decimalOx * decimalCo) << "\n";
 }
 
+// -----
+// day 4
+// -----
+void FindResults(list<int>& results)
+{
+    std::ifstream infile("C:\\Users\\paver\\Desktop\\data-bingo-results.txt");
+
+    for (string line; getline(infile, line);)
+    {
+        std::stringstream ss(line);
+
+        int num = 0;
+
+        vector<string> enrolled;
+        for (string course; std::getline(ss, course, ',');)
+        {
+            enrolled.push_back(course);
+           
+            num = stoi(course);
+            results.push_back(num);
+        }
+    }
+}
+
+void FindBoards(list<vector<vector<int>>>& boards, list<vector<vector<int>>>& boardsMarkers)
+{
+    std::ifstream infile("C:\\Users\\paver\\Desktop\\data-bingo-boards.txt");
+
+    int listCounter = 0;
+    int x = 0;
+    int y = 0;
+    int num = 0;
+    vector<vector<int>> board(5, vector<int>(5, 0));
+    vector<vector<int>> boardMarker(5, vector<int>(5, 0));
+
+    for (string line; getline(infile, line);)
+    {
+        if (line != "")
+        {
+            std::stringstream ss(line);
+            
+            vector<string> enrolled;
+            for (string course; std::getline(ss >> std::ws, course, ' ');)
+            {
+                enrolled.push_back(course);
+
+                num = stoi(course);
+                
+                board[x][y] = num;
+                boardMarker[x][y] = 0;
+
+                x++;
+            }
+            x = 0;
+            y++;
+        }
+        else {
+            y = 0;
+            boards.push_back(board);
+            boardsMarkers.push_back(boardMarker);
+        }
+    }
+    // ingresar ultimo tablero
+    boards.push_back(board);
+    boardsMarkers.push_back(boardMarker);
+}
+
+void LookForAWinner(
+    list<int>& results, 
+    list<vector<vector<int>>>& boards, 
+    list<vector<vector<int>>>& boardsMarkers, 
+    vector<vector<int>>& winnerBoard, 
+    vector<vector<int>>& winnerMarkers,
+    int& winningNumber)
+{
+    // loop por resultados
+    for (auto it = results.begin(); it != results.end(); it++)
+    {
+        int currentNumber = *it;
+
+        // loop por tableros
+        list<vector<vector<int>>>::iterator it1 = boards.begin();
+        list<vector<vector<int>>>::iterator it2 = boardsMarkers.begin();
+
+        while (it1 != boards.end() && it2 != boardsMarkers.end()) {
+            // loop en los numeros del tablero
+            vector<vector<int>>& board = *it1;
+            vector<vector<int>>& boardMarker = *it2;
+
+            // marcar numeros de bingo
+            for (int y = 0; y < 5; y++)
+            {
+                for (int x = 0; x < 5; x++)
+                {
+                    int boardNumber = board[x][y];
+                    
+                    // revisar si el número del tablero corresponde al numero sorteado
+                    if (board[x][y] == currentNumber)
+                    {
+                        boardMarker[x][y] = 1;
+                    }
+                }
+            }
+
+            // revisar si hay un ganador
+            int rowCount = 0;
+            int colCount = 0;
+            
+            // revisar fila
+            for (int y = 0; y < 5; y++)
+            {
+                for (int x = 0; x < 5; x++)
+                {
+                    if (boardMarker[x][y] == 1)
+                    {
+                        rowCount += 1;
+                        if (rowCount > 4)
+                        {
+                            cout << "Winner found" << "\n";
+                            winnerBoard = board;
+                            winnerMarkers = boardMarker;
+                            winningNumber = currentNumber;
+                            return;
+                        }
+                    }
+                }
+                rowCount = 0;
+            }
+
+            // revisar columna
+            for (int x = 0; x < 5; x++)
+            {
+                for (int y = 0; y < 5; y++)
+                {
+                    if (boardMarker[x][y] == 1)
+                    {
+                        colCount += 1;
+                        if (colCount > 4)
+                        {
+                            cout << "Winner found" << "\n";
+                            winnerBoard = board;
+                            winnerMarkers = boardMarker;
+                            winningNumber = currentNumber;
+                            return;
+                        }
+                    }
+                }
+                colCount = 0;
+            }
+
+            it1++;
+            it2++;
+        }
+
+
+    }
+}
+
+void Bingo()
+{
+    list <int> results;
+    list<vector<vector<int>>> boards;
+    list<vector<vector<int>>> boardsMarkers;
+    vector<vector<int>> winnerBoard(5, vector<int>(5, 0));
+    vector<vector<int>> winnerMarkers(5, vector<int>(5, 0));
+    int winningNumber = 0;
+
+    FindResults(results);
+    FindBoards(boards, boardsMarkers);
+    LookForAWinner(results, boards, boardsMarkers, winnerBoard, winnerMarkers, winningNumber);
+
+    /*for (auto it = results.begin(); it != results.end(); it++) {
+        int cn = *it;
+        cout << "result: " << cn << "\n";
+    }*/
+
+    int bcount = 0;
+    for (auto it = boards.begin(); it != boards.end(); it++) {        
+        vector<vector<int>> board = *it;
+
+        cout << " board: " << bcount << "\n";
+        for (int y = 0; y < 5; y++)
+        {
+            for (int x = 0; x < 5; x++)
+            {
+                cout << board[x][y] << " ";
+            }
+
+            cout << "\n";
+        }
+
+        bcount++;
+        cout << " -------------- " << "\n";
+    }
+
+    int count = 0;
+    for (auto it = boardsMarkers.begin(); it != boardsMarkers.end(); it++) {
+        vector<vector<int>> boardMarker = *it;
+
+        cout << " board: " << count << "\n";
+        for (int y = 0; y < 5; y++)
+        {
+            for (int x = 0; x < 5; x++)
+            {
+                cout << boardMarker[x][y] << " ";
+            }
+
+            cout << "\n";
+        }
+        count++;
+
+        cout << " -------------- " << "\n";
+    }
+
+    // encontrar puntaje final
+    cout << "\n";
+    cout << "- WINNER BOARD -" << "\n";
+    double score = 0;
+    for (int y = 0; y < 5; y++)
+    {
+        for (int x = 0; x < 5; x++)
+        {
+            cout << winnerBoard[x][y] << " ";
+
+            if (winnerMarkers[x][y] == 0)
+            {
+                score += winnerBoard[x][y];
+            }
+        }
+        cout << "\n";
+    }
+    cout << " ---------------- " << "\n";
+    for (int y = 0; y < 5; y++)
+    {
+        for (int x = 0; x < 5; x++)
+        {
+            cout << winnerMarkers[x][y] << " ";
+        }
+        cout << "\n";
+    }
+    cout << "\n";
+    cout << "SCORE: " << score << "\n";
+    cout << "WINNING NUMBER: " << winningNumber << "\n";
+    cout << "FINAL SCORE: " << score * winningNumber << "\n";
+}
+
 // ----
 // MAIN
 // ----
 int main()
 {
-    LifeSupport();
+    Bingo();
 }
