@@ -993,8 +993,10 @@ list<vector<vector<int>>> LineFilter(list<vector<int>>& firstCol, list<vector<in
         bool horizontal = startCoord[1] == endCoord[1];
         bool vertical = startCoord[0] == endCoord[0];
 
-        if (vertical || horizontal)
-        {
+        // no revisar si es que son lineas horizontales o verticales
+        // para la parte 2
+        /*if (vertical || horizontal)
+        {*/
             vector<int> start { startCoord[0], startCoord[1] };
             vector<int> end { endCoord[0], endCoord[1] };
             vector<vector<int>> temp { start, end };
@@ -1002,7 +1004,7 @@ list<vector<vector<int>>> LineFilter(list<vector<int>>& firstCol, list<vector<in
             cout << start[0] << "-" << start[1] << " --- " << end[0] << "-" << end[1] << "\n";
 
             filtered.push_back(temp);
-        }
+        //}
 
         it1++;
         it2++;
@@ -1045,7 +1047,6 @@ list<vector<int>> FoundCoords(vector<vector<int>> line)
     {
         cout << currentCoord[0] << "-" << currentCoord[1] << "\n";
         points.push_back({ currentCoord[0], currentCoord[1] });
-        //points = { currentCoord[0], currentCoord[1]};
         int x = currentCoord[0];
         int y = currentCoord[1];
 
