@@ -11,14 +11,18 @@
 #include <sstream>
 #include <string>
 #include <list>
+#include <algorithm>
 #include <vector>
+#include <cstdlib>
 
+using std::count;
 using std::cin;
 using std::cout;
 using std::list;
 using std::string;
 using std::stoi;
 using std::vector;
+using std::pair;
 
 // -----
 // day 1
@@ -892,10 +896,264 @@ void Bingo()
     cout << "LAST FINAL SCORE: " << lastScore * lastWinningNumber << "\n";
 }
 
+// -----
+// day 5
+// -----
+void FoundVentData(list<vector<int>>& firstCol, list<vector<int>>& secondCol)
+{
+    std::ifstream infile("C:\\Users\\paver\\Desktop\\data-vents.txt");
+    vector<int> data(2, 0);
+    int x = 0;
+    int y = 0;
+
+    for (string line; getline(infile, line);)
+    {
+        std::stringstream ss(line);
+
+        int pos = 0;
+        vector<string> enrolled;
+        for (string course; std::getline(ss >> std::ws, course, ' ');)
+        {
+            enrolled.push_back(course);
+
+            if (course != "->")
+            {
+                pos++;
+
+                if (pos == 1)
+                {
+                    vector<string> secondEnrolled;
+                    std::stringstream sss(course);
+                    int cn = 0;
+                    for (string secondCourse; std::getline(sss >> std::ws, secondCourse, ',');)
+                    {
+                        secondEnrolled.push_back(secondCourse);
+
+                        if (cn == 0)
+                        {
+                            x = stol(secondCourse);
+                            cn++;
+                        }
+                        else
+                        {
+                            y = stol(secondCourse);
+                            cn = 0;
+                        }                        
+                    }
+
+                    data[0] = x;
+                    data[1] = y;
+
+                    firstCol.push_back(data);
+                }
+                else
+                {
+                    vector<string> secondEnrolled;
+                    std::stringstream sss(course);
+                    int cn = 0;
+                    for (string secondCourse; std::getline(sss >> std::ws, secondCourse, ',');)
+                    {
+                        secondEnrolled.push_back(secondCourse);
+
+                        if (cn == 0)
+                        {
+                            x = stol(secondCourse);
+                            cn++;
+                        }
+                        else
+                        {
+                            y = stol(secondCourse);
+                            cn = 0;
+                        }
+                    }
+
+                    data[0] = x;
+                    data[1] = y;
+
+                    secondCol.push_back(data);
+                }
+            }
+        }
+    }
+}
+
+list<vector<vector<int>>> LineFilter(list<vector<int>>& firstCol, list<vector<int>>& secondCol)
+{
+    list<vector<vector<int>>> filtered;
+
+    list<vector<int>>::iterator it1 = firstCol.begin();
+    list<vector<int>>::iterator it2 = secondCol.begin();
+
+    cout << "-------FILTERED LINES-------" << "\n";
+    while (it1 != firstCol.end() && it2 != secondCol.end()) 
+    {
+        vector<int>& startCoord = *it1;
+        vector<int>& endCoord = *it2;
+
+        bool horizontal = startCoord[1] == endCoord[1];
+        bool vertical = startCoord[0] == endCoord[0];
+
+        if (vertical || horizontal)
+        {
+            vector<int> start { startCoord[0], startCoord[1] };
+            vector<int> end { endCoord[0], endCoord[1] };
+            vector<vector<int>> temp { start, end };
+
+            cout << start[0] << "-" << start[1] << " --- " << end[0] << "-" << end[1] << "\n";
+
+            filtered.push_back(temp);
+        }
+
+        it1++;
+        it2++;
+    }
+    cout << "----------------------------" << "\n";
+
+    return filtered;
+}
+
+int gcd(int x, int y)
+{
+    x = abs(x);
+    y = abs(y);
+
+    if (y == 0)
+        return x;
+
+    return gcd(y, x % y);
+}
+
+list<vector<int>> FoundCoords(vector<vector<int>> line)
+{
+    list<vector<int>> points;
+
+    vector<int> startCoords = { line[0][0], line[0][1]};
+    vector<int> endCoords = { line[1][0], line[1][1] };
+
+    int xDelta = endCoords[0] - startCoords[0];
+    int yDelta = endCoords[1] - startCoords[1];
+
+    int cd = gcd(xDelta, yDelta);
+
+    int xSlope = xDelta / cd;
+    int ySlope = yDelta / cd;
+
+    vector<int> currentCoord = { startCoords[0], startCoords[1] };
+
+    cout << "-------LINES PASS THROUGH-------" << "\n";
+    while (currentCoord[0] != endCoords[0] || currentCoord[1] != endCoords[1])
+    {
+        cout << currentCoord[0] << "-" << currentCoord[1] << "\n";
+        points.push_back({ currentCoord[0], currentCoord[1] });
+        //points = { currentCoord[0], currentCoord[1]};
+        int x = currentCoord[0];
+        int y = currentCoord[1];
+
+        currentCoord = { x + xSlope , y + ySlope };
+    }
+    cout << currentCoord[0] << "-" << currentCoord[1] << "\n";
+    points.push_back({ currentCoord[0], currentCoord[1] });
+    cout << "--------------------------------" << "\n";
+
+    return points;
+}
+
+list<vector<int>> FoundCoordsAll(list<vector<vector<int>>>& filtered)
+{
+    list<vector<int>> allCoords;
+
+    for (auto it = filtered.begin(); it != filtered.end(); it++)
+    {
+        vector<vector<int>> line = *it;
+
+        list<vector<int>> linePath = FoundCoords(line);
+
+        for (auto i = linePath.begin(); i != linePath.end(); i++)
+        {
+            vector<int> line = *i;
+
+            allCoords.push_back(line);
+        }
+    }
+
+    return allCoords;
+}
+
+int countOccurrences(int arr[], int n, int x)
+{
+    int res = 0;
+    for (int i = 0; i < n; i++)
+        if (x == arr[i])
+            res++;
+    return res;
+}
+
+void FoundColliding(list<vector<int>> coords)
+{
+    list<vector<int>> counted {};
+    int result = 0;
+    bool coordCounted = false;
+
+    cout << "--------FIND COLLIDING--------" << "\n";
+
+    list<vector<int>>::iterator it = coords.begin();
+
+    while (it != coords.end())
+    {
+        vector<int> coord = *it;
+
+        int amount = 0;
+        amount = count(coords.begin(), coords.end(), coord);
+
+        if (amount > 1)
+        {
+            for (auto i = counted.begin(); i != counted.end(); i++)
+            {
+                vector<int> temp = *i;
+
+                if (temp == coord)
+                {
+                    coordCounted = true;
+                    break;
+                }
+            }
+
+            if (!coordCounted)
+            {
+                counted.push_back(coord);
+                cout << "amount: " << amount << "\n";
+                cout << coord[0] << "-" << coord[1] << "\n";
+                result++;
+            }
+            coordCounted = false;
+        }
+
+        it++;
+    }
+
+    cout << "-----------------------------" << "\n";
+
+    cout << "RESULT: " << result << "\n";
+}
+
+void Hydro()
+{
+    list<vector<int>> firstCol;
+    list<vector<int>> secondCol;
+    list<vector<vector<int>>> filtered;
+    list<vector<int>> founded;
+    int result = 0;
+
+    FoundVentData(firstCol, secondCol);
+    filtered = LineFilter(firstCol, secondCol);
+    founded = FoundCoordsAll(filtered);
+    FoundColliding(founded);
+}
+
 // ----
 // MAIN
 // ----
 int main()
 {
-    Bingo();
+    Hydro();
 }
